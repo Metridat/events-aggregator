@@ -9,8 +9,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     outputs:
-      image: ${{ steps.meta.outputs.tags }}
-      repo: ${{ steps.repo.outputs.repo }}
+      repo_lower: ${{ steps.repo_lower.outputs.repo_lower }}
 
     steps:
       - name: Checkout code
@@ -26,18 +25,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set lowercase repository name
-        id: repo
-        run: echo "repo=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
-
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ steps.repo.outputs.repo }}
-          tags: |
-            type=ref,event=branch
-            type=sha,prefix={{branch}}-
+      - name: Convert repository name to lowercase
+        id: repo_lower
+        run: echo "repo_lower=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
       - name: Build and push
         uses: docker/build-push-action@v7
@@ -45,9 +35,7 @@ jobs:
           context: .
           platforms: linux/amd64
           push: true
-          tags: ghcr.io/${{ steps.repo.outputs.repo }}:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          tags: ghcr.io/${{ steps.repo_lower.outputs.repo_lower }}:${{ github.sha }}
 
   deploy:
     needs: build
@@ -56,14 +44,8 @@ jobs:
     steps:
       - name: Send deploy request
         run: |
-          HTTP_CODE=$(curl -s -o response.txt -w "%{http_code}" -X POST \
+          curl -X POST \
             -H "Content-Type: application/json" \
             -H "X-API-Key: ${{ secrets.LMS_API_KEY }}" \
-            -d '{"image":"ghcr.io/${{ needs.build.outputs.repo }}:${{ github.sha }}","repository":"${{ github.repository }}"}' \
-            https://lms.python-labs.ru/api/deploy-requests)
-          if [ "$HTTP_CODE" != "200" ]; then
-            echo "Deployment failed with status code $HTTP_CODE"
-            echo "Response body:"
-            cat response.txt
-            exit 1
-          fi
+            -d '{"image":"ghcr.io/${{ needs.build.outputs.repo_lower }}:${{ github.sha }}","repository":"${{ github.repository }}"}' \
+            https://lms.python-labs.ru/api/deploy-requests
