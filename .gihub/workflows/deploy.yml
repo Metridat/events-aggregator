@@ -3,7 +3,7 @@ name: Deploy to LMS
 on:
   push:
     branches:
-      - fix/deploy-workflow
+      - "*"
       
 jobs:
   build:
