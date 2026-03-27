@@ -3,8 +3,8 @@ name: Deploy to LMS
 on:
   push:
     branches:
-      - main
-
+      - fix/deploy-workflow
+      
 jobs:
   build:
     runs-on: ubuntu-latest
