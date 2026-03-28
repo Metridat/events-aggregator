@@ -4,9 +4,26 @@ on:
   push:
     branches:
       - "**"
-      
+
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Ruff format check
+        uses: astral-sh/ruff-action@v3
+        with:
+          args: format --check .
+
+      - name: Run Ruff lint check
+        uses: astral-sh/ruff-action@v3
+        with:
+          args: check .
+
   build:
+    needs: lint
     runs-on: ubuntu-latest
     outputs:
       repo_lower: ${{ steps.repo_lower.outputs.repo_lower }}
