@@ -2,8 +2,8 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import DateTime, ForeignKey, Integer, String
-from sqlalchemy.orm import Mapped, mapped_column as mc, relationship
-
+from sqlalchemy.orm import Mapped, relationship
+from sqlalchemy.orm import mapped_column as mc
 
 from src.core.database import Base
 
