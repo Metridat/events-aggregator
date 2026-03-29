@@ -20,4 +20,4 @@ USER appuser
 
 ENV UV_CACHE_DIR=/tmp/uv-cache
 
-CMD ["sh", "-c", "uv run alembic upgrade head && /app/.venv/bin/uvicorn src.main:app --host 0.0.0.0 --port 8000"]
+CMD ["sh", "-c", "/app/.venv/bin/alembic upgrade head && /app/.venv/bin/uvicorn src.main:app --host 0.0.0.0 --port 8000"]
