@@ -21,6 +21,10 @@ class Place(Base):
 
     seats_pattern: Mapped[str | None] = mc(String, nullable=True)
 
+    changed_at: Mapped[datetime] = mc(DateTime(timezone=True))
+
+    created_at: Mapped[datetime] = mc(DateTime(timezone=True))
+
     events: Mapped[list["Event"]] = relationship(back_populates="place")
 
 
@@ -41,13 +45,21 @@ class Event(Base):
 
     number_of_visitors: Mapped[int] = mc(Integer, nullable=False, default=0)
 
+    changed_at: Mapped[datetime] = mc(DateTime(timezone=True))
+
+    created_at: Mapped[datetime] = mc(DateTime(timezone=True))
+
+    status_changed_at: Mapped[datetime | None] = mc(
+        DateTime(timezone=True), nullable=True
+    )
+
     place: Mapped["Place"] = relationship(back_populates="events")
 
 
 class Ticket(Base):
     __tablename__ = "tickets"
 
-    ticket_id: Mapped[str] = mc(String, primary_key=True)
+    ticket_id: Mapped[uuid.UUID] = mc(primary_key=True, default=uuid.uuid4, index=True)
 
     event_id: Mapped[uuid.UUID] = mc(ForeignKey("events.id"), nullable=False)
 

@@ -1,0 +1,12 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: events_aggregator
+    ports:
+      - "5432:5432"
+
+
+
