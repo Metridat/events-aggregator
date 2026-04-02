@@ -10,4 +10,4 @@ router = APIRouter()
 @router.post("/api/sync/trigger")
 async def trigger_sync():
     asyncio.create_task(sync_events())
-    return {"status": "ok"}
+    return {"status": "started"}

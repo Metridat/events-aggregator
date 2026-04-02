@@ -75,11 +75,9 @@ async def sync_events():
 
 
 async def sync_worker():
-    """Фоновый воркер - запускает синхронизацию раз в день"""
     while True:
+        await asyncio.sleep(60 * 60 * 24)
         try:
             await sync_events()
         except Exception as e:
             logger.error(f"Sync failed: {e}")
-
-        await asyncio.sleep(60 * 60 * 24)
