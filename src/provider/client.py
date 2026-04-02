@@ -11,12 +11,14 @@ class EventsProviderClient:
     ) -> dict:
         async with httpx.AsyncClient() as client:
             if cursor:
-                url = cursor
-                params = {}
+                url = cursor.replace("http://", "https://")
+                params = None
             else:
                 url = f"{self.base_url}/api/events/"
                 params = {"changed_at": changed_at}
-            response = await client.get(url=url, headers=self.headers, params=params)
+            response = await client.get(
+                url=url, headers=self.headers, params=params, follow_redirects=True
+            )
             response.raise_for_status()
             return response.json()
 
@@ -25,6 +27,7 @@ class EventsProviderClient:
             response = await client.get(
                 url=f"{self.base_url}/api/events/{event_id}/seats/",
                 headers=self.headers,
+                follow_redirects=True,
             )
             response.raise_for_status()
             return response.json()
@@ -42,6 +45,7 @@ class EventsProviderClient:
                     "email": email,
                     "seat": seat,
                 },
+                follow_redirects=True,
             )
             response.raise_for_status()
             return response.json()["ticket_id"]
@@ -53,6 +57,7 @@ class EventsProviderClient:
                 url=f"{self.base_url}/api/events/{event_id}/unregister/",
                 headers=self.headers,
                 json={"ticket_id": ticket_id},
+                follow_redirects=True,
             )
             response.raise_for_status()
             return response.json()["success"]

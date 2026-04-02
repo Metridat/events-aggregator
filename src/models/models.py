@@ -13,11 +13,11 @@ class Place(Base):
 
     id: Mapped[uuid.UUID] = mc(primary_key=True, default=uuid.uuid4, index=True)
 
-    name: Mapped[str] = mc(String(50))
+    name: Mapped[str] = mc(String(200))
 
-    city: Mapped[str] = mc(String(30))
+    city: Mapped[str] = mc(String(100))
 
-    address: Mapped[str] = mc(String(50))
+    address: Mapped[str] = mc(String(200))
 
     seats_pattern: Mapped[str | None] = mc(String, nullable=True)
 
@@ -33,13 +33,13 @@ class Event(Base):
 
     id: Mapped[uuid.UUID] = mc(primary_key=True, default=uuid.uuid4, index=True)
 
-    name: Mapped[str] = mc(String(50))
+    name: Mapped[str] = mc(String(200))
 
     place_id: Mapped[uuid.UUID] = mc(ForeignKey("places.id"), nullable=False)
 
-    event_time: Mapped[datetime] = mc(DateTime)
+    event_time: Mapped[datetime] = mc(DateTime(timezone=True))
 
-    registration_deadline: Mapped[datetime] = mc(DateTime)
+    registration_deadline: Mapped[datetime] = mc(DateTime(timezone=True))
 
     status: Mapped[str] = mc(String(20))
 
