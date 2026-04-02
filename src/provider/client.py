@@ -10,6 +10,7 @@ class EventsProviderClient:
         self, changed_at: str = "2000-01-01", cursor: str | None = None
     ) -> dict:
         async with httpx.AsyncClient() as client:
+            client = httpx.AsyncClient(timeout=30.0)
             if cursor:
                 url = cursor.replace("http://", "https://")
                 params = None
@@ -24,6 +25,7 @@ class EventsProviderClient:
 
     async def get_seats(self, event_id: str) -> dict:
         async with httpx.AsyncClient() as client:
+            client = httpx.AsyncClient(timeout=30.0)
             response = await client.get(
                 url=f"{self.base_url}/api/events/{event_id}/seats/",
                 headers=self.headers,
@@ -36,6 +38,7 @@ class EventsProviderClient:
         self, event_id: str, first_name: str, last_name: str, email: str, seat: str
     ) -> str:
         async with httpx.AsyncClient() as client:
+            client = httpx.AsyncClient(timeout=30.0)
             response = await client.post(
                 url=f"{self.base_url}/api/events/{event_id}/register/",
                 headers=self.headers,
@@ -52,6 +55,7 @@ class EventsProviderClient:
 
     async def unregister(self, event_id: str, ticket_id: str) -> bool:
         async with httpx.AsyncClient() as client:
+            client = httpx.AsyncClient(timeout=30.0)
             response = await client.request(
                 method="DELETE",
                 url=f"{self.base_url}/api/events/{event_id}/unregister/",

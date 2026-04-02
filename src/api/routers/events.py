@@ -39,11 +39,17 @@ async def get_events(
         else None
     )
 
+    results = []
+    for e in events:
+        if not e.place:
+            continue
+        results.append(EventListSchema.model_validate(e))
+
     return EventsResponseSchema(
         count=total,
         next=next_url,
         previous=prev_url,
-        results=[EventListSchema.model_validate(e) for e in events],
+        results=results,
     )
 
 

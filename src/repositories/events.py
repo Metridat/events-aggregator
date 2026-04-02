@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,6 +19,7 @@ class EventRepository:
             set_=place_data,
         )
         await self.session.execute(stmt)
+        await self.session.commit()
 
     async def upsert_event(self, event_data: dict) -> None:
         stmt = insert(Event).values(**event_data)
@@ -25,6 +28,7 @@ class EventRepository:
             set_=event_data,
         )
         await self.session.execute(stmt)
+        await self.session.commit()
 
     async def get_events(
         self,
@@ -33,16 +37,20 @@ class EventRepository:
         date_from: str | None = None,
     ) -> tuple[list[Event], int]:
         query = select(Event).options(joinedload(Event.place))
-        if date_from:
-            query = query.where(Event.event_time >= date_from)
+        count_query = select(func.count()).select_from(Event)
 
-        count_query = select(func.count()).select_from(query.subquery())
+        if date_from:
+            date_from_dt = datetime.fromisoformat(date_from)
+            query = query.where(Event.event_time >= date_from_dt)
+            count_query = count_query.where(Event.event_time >= date_from_dt)
+
         total = await self.session.scalar(count_query) or 0
 
         offset = (page - 1) * page_size
         query = query.offset(offset).limit(page_size)
+
         result = await self.session.execute(query)
-        events = list(result.scalars().all())
+        events = list(result.scalars().unique().all())
 
         return events, total
 

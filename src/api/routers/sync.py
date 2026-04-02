@@ -1,13 +1,11 @@
-import asyncio
-
 from fastapi import APIRouter
 
-from src.worker.sync import sync_events
+from src.worker.sync import sync_worker
 
 router = APIRouter()
 
 
 @router.post("/api/sync/trigger")
 async def trigger_sync():
-    asyncio.create_task(sync_events())
+    await sync_worker()
     return {"status": "ok"}

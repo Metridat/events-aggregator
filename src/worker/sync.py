@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import uuid
 from datetime import datetime
 
 from src.core.config import settings
@@ -12,9 +13,9 @@ logger = logging.getLogger(__name__)
 
 
 def parse_datetime(value: str | None) -> datetime | None:
-    if value is None:
+    if not value:
         return None
-    return datetime.fromisoformat(value)
+    return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
 
 async def sync_events():
@@ -29,26 +30,35 @@ async def sync_events():
         session.autoflush = False
         repo = EventRepository(session=session)
 
-        async for event in EventsPaginator(client=client):
-            place_data = event["place"]
-            place_data["changed_at"] = parse_datetime(place_data.get("changed_at"))
-            place_data["created_at"] = parse_datetime(place_data.get("created_at"))
-            await repo.upsert_place(place_data=place_data)
+    async for event in EventsPaginator(client=client):
+        if not event.get("place"):
+            continue
+        place_data = event["place"]
 
-            event_data = {k: v for k, v in event.items() if k != "place"}
-            event_data["place_id"] = event["place"]["id"]
-            event_data["event_time"] = parse_datetime(event_data.get("event_time"))
-            event_data["registration_deadline"] = parse_datetime(
-                event_data.get("registration_deadline")
-            )
-            event_data["changed_at"] = parse_datetime(event_data.get("changed_at"))
-            event_data["created_at"] = parse_datetime(event_data.get("created_at"))
-            event_data["status_changed_at"] = parse_datetime(
-                event_data.get("status_changed_at")
-            )
-            await repo.upsert_event(event_data=event_data)
+        place_data["changed_at"] = parse_datetime(place_data.get("changed_at"))
+        place_data["created_at"] = parse_datetime(place_data.get("created_at"))
 
-            await session.commit()
+        await repo.upsert_place(place_data=place_data)
+
+        event_data = {k: v for k, v in event.items() if k != "place"}
+        event_data["place_id"] = event["place"]["id"]
+
+        event_data["id"] = uuid.UUID(event_data["id"])
+        event_data["place_id"] = uuid.UUID(event["place"]["id"])
+
+        event_data["event_time"] = parse_datetime(event_data.get("event_time"))
+        event_data["registration_deadline"] = parse_datetime(
+            event_data.get("registration_deadline")
+        )
+        event_data["changed_at"] = parse_datetime(event_data.get("changed_at"))
+        event_data["created_at"] = parse_datetime(event_data.get("created_at"))
+        event_data["status_changed_at"] = parse_datetime(
+            event_data.get("status_changed_at")
+        )
+
+        await repo.upsert_event(event_data=event_data)
+
+    await session.commit()
 
     logger.info("Sync complete!")
 

@@ -15,8 +15,14 @@ logging.basicConfig(level=logging.INFO)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     task = asyncio.create_task(sync_worker())
-    yield
-    task.cancel()
+    try:
+        yield
+    finally:
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
 
 
 app = FastAPI(title="Events Aggregator", lifespan=lifespan)
