@@ -5,7 +5,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from src.models.models import Event, Place
+from src.models.models import Event, Place, Ticket
 
 
 class EventRepository:
@@ -19,7 +19,6 @@ class EventRepository:
             set_=place_data,
         )
         await self.session.execute(stmt)
-        await self.session.commit()
 
     async def upsert_event(self, event_data: dict) -> None:
         stmt = insert(Event).values(**event_data)
@@ -28,7 +27,6 @@ class EventRepository:
             set_=event_data,
         )
         await self.session.execute(stmt)
-        await self.session.commit()
 
     async def get_events(
         self,
@@ -59,3 +57,22 @@ class EventRepository:
             select(Event).options(joinedload(Event.place)).where(Event.id == event_id)
         )
         return result.scalar_one_or_none()
+
+    async def create_ticket(self, ticket_data: dict) -> None:
+        stmt = insert(Ticket).values(**ticket_data)
+        stmt = stmt.on_conflict_do_update(
+            index_elements=["ticket_id"],
+            set_=ticket_data,
+        )
+        await self.session.execute(stmt)
+
+    async def get_ticket_by_id(self, ticket_id: str) -> Ticket | None:
+        result = await self.session.execute(
+            select(Ticket).where(Ticket.ticket_id == ticket_id)
+        )
+        return result.scalar_one_or_none()
+
+    async def delete_ticket_by_id(self, ticket_id: str) -> None:
+        ticket = await self.get_ticket_by_id(ticket_id=ticket_id)
+        if ticket:
+            await self.session.delete(ticket)

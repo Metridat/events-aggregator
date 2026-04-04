@@ -70,3 +70,15 @@ class Ticket(Base):
     email: Mapped[str] = mc(String(100), index=True, nullable=False)
 
     seat: Mapped[str] = mc(String(20), index=True, nullable=False)
+
+
+class SyncMetadata(Base):
+    __tablename__ = "sync_metadata"
+
+    id: Mapped[int] = mc(Integer, primary_key=True, default=1)
+
+    last_sync_time: Mapped[datetime | None] = mc(DateTime(timezone=True), nullable=True)
+
+    last_changed_at: Mapped[str | None] = mc(String(128), nullable=True)
+
+    sync_status: Mapped[str] = mc(String(32), nullable=False, default="idle")

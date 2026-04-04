@@ -38,3 +38,24 @@ class EventsResponseSchema(BaseModel):
     next: str | None
     previous: str | None
     results: list[EventListSchema]
+
+
+class SeatsResponseSchema(BaseModel):
+    event_id: uuid.UUID
+    available_seats: list[str]
+
+
+class TicketCreateRequestSchema(BaseModel):
+    event_id: uuid.UUID
+    first_name: str
+    last_name: str
+    email: str
+    seat: str
+
+
+class TicketCreateResponseSchema(BaseModel):
+    ticket_id: uuid.UUID
+
+
+class TicketDeleteResponseSchema(BaseModel):
+    success: bool
