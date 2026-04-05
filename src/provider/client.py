@@ -78,7 +78,7 @@ class EventsProviderClient:
     ) -> dict:
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             if cursor:
-                url = _sanitize_events_list_url(cursor.replace("http://", "https://"))
+                url = cursor
                 params = None
             else:
                 url = f"{self.base_url}/api/events/"

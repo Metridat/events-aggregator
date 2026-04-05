@@ -155,8 +155,14 @@ async def create_ticket(
     payload: TicketCreateRequestSchema,
     session: AsyncSession = Depends(get_async_db),
 ):
+    try:
+        event_uuid = uuid.UUID(payload.event_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid event_id format")
+
     repo = EventRepository(session=session)
-    event = await repo.get_event_by_id(event_id=str(payload.event_id))
+    event = await repo.get_event_by_id(event_id=str(event_uuid))
+
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
     if event.status != "published":
@@ -168,7 +174,7 @@ async def create_ticket(
     )
     try:
         ticket_id = await client.register(
-            event_id=str(payload.event_id),
+            event_id=payload.event_id,
             first_name=payload.first_name,
             last_name=payload.last_name,
             email=payload.email,
@@ -176,10 +182,11 @@ async def create_ticket(
         )
     except EventsProviderHTTPError as e:
         raise _http_exception_from_provider(e) from e
+
     await repo.create_ticket(
         {
             "ticket_id": uuid.UUID(ticket_id),
-            "event_id": payload.event_id,
+            "event_id": event_uuid,
             "first_name": payload.first_name,
             "last_name": payload.last_name,
             "email": payload.email,
@@ -187,7 +194,7 @@ async def create_ticket(
         }
     )
     await session.commit()
-    _seats_cache.pop(str(payload.event_id), None)
+    _seats_cache.pop(payload.event_id, None)
     return TicketCreateResponseSchema(ticket_id=uuid.UUID(ticket_id))
 
 
