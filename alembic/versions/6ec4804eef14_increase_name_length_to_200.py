@@ -1,6 +1,6 @@
 """increase name length to 200
 
-Revision ID: 6ec4804eef14
+Revision ID: 3e9e59d5ef02
 Revises: b3f6421921d2
 Create Date: 2026-04-05 12:47:56.653960
 
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "6ec4804eef14"
+revision: str = "3e9e59d5ef02"
 down_revision: Union[str, Sequence[str], None] = "b3f6421921d2"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -24,7 +24,7 @@ def upgrade() -> None:
         "events",
         "name",
         existing_type=sa.VARCHAR(length=50),
-        type_=sa.VARCHAR(length=200),
+        type_=sa.VARCHAR(length=500),
         nullable=False,
     )
 
@@ -32,7 +32,7 @@ def upgrade() -> None:
         "places",
         "name",
         existing_type=sa.VARCHAR(length=50),
-        type_=sa.VARCHAR(length=200),
+        type_=sa.VARCHAR(length=500),
         nullable=False,
     )
     op.alter_column(
@@ -55,7 +55,7 @@ def downgrade() -> None:
     op.alter_column(
         "events",
         "name",
-        existing_type=sa.VARCHAR(length=200),
+        existing_type=sa.VARCHAR(length=500),
         type_=sa.VARCHAR(length=50),
         nullable=False,
     )
@@ -63,7 +63,7 @@ def downgrade() -> None:
     op.alter_column(
         "places",
         "name",
-        existing_type=sa.VARCHAR(length=200),
+        existing_type=sa.VARCHAR(length=500),
         type_=sa.VARCHAR(length=50),
         nullable=False,
     )
