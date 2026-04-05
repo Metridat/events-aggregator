@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel
 
 
 class PlaceListSchema(BaseModel):
@@ -46,20 +46,11 @@ class SeatsResponseSchema(BaseModel):
 
 
 class TicketCreateRequestSchema(BaseModel):
-    event_id: str
+    event_id: uuid.UUID
     first_name: str
     last_name: str
     email: str
     seat: str
-
-    @field_validator("event_id")
-    @classmethod
-    def validate_event_id(cls, v: str) -> str:
-        try:
-            uuid.UUID(v)
-            return v
-        except ValueError:
-            raise ValueError("Invalid UUID format")
 
 
 class TicketCreateResponseSchema(BaseModel):
