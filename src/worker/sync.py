@@ -3,9 +3,8 @@ import logging
 import uuid
 from datetime import datetime, timezone
 
-from src.core.config import settings
 from src.core.database import AsyncSessionLocal
-from src.provider.client import EventsProviderClient
+from src.provider.factory import create_events_provider_client
 from src.provider.paginator import EventsPaginator
 from src.repositories.events import EventRepository
 from src.repositories.sync_metadata import SyncMetadataRepository
@@ -20,7 +19,6 @@ def parse_datetime(value: str | None) -> datetime | None:
 
 
 def changed_at_for_provider(stored: str | None) -> str:
-    """Provider expects a date (YYYY-MM-DD), not a full ISO datetime."""
     if not stored:
         return "2000-01-01"
     s = stored.strip()
@@ -37,10 +35,7 @@ _sync_running = False
 
 
 async def sync_events() -> None:
-    client = EventsProviderClient(
-        base_url=settings.events_provider_url,
-        api_key=settings.events_provider_api_key,
-    )
+    client = create_events_provider_client()
     global _sync_running
     if _sync_running:
         logger.info("Sync already running, skipping...")

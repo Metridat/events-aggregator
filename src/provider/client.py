@@ -1,11 +1,10 @@
 from datetime import datetime
-from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
+from urllib.parse import parse_qs, urlencode, urljoin, urlparse, urlunparse
 
 import httpx
 
 
 def _normalize_changed_at_param(value: str) -> str:
-    """API expects a date (YYYY-MM-DD), not a full ISO datetime."""
     s = (value or "").strip()
     if not s:
         return "2000-01-01"
@@ -73,6 +72,10 @@ class EventsProviderClient:
         self.headers = {"x-api-key": api_key}
         self.timeout = 10.0
 
+    def _url(self, path: str) -> str:
+        base = self.base_url if self.base_url.endswith("/") else f"{self.base_url}/"
+        return urljoin(base, path.lstrip("/"))
+
     async def get_events(
         self, changed_at: str = "2000-01-01", cursor: str | None = None
     ) -> dict:
@@ -81,7 +84,7 @@ class EventsProviderClient:
                 url = cursor
                 params = None
             else:
-                url = f"{self.base_url}/api/events/"
+                url = self._url("api/events/")
                 params = {"changed_at": _normalize_changed_at_param(changed_at)}
             response = await client.get(
                 url=url, headers=self.headers, params=params, follow_redirects=True
@@ -92,7 +95,7 @@ class EventsProviderClient:
     async def get_seats(self, event_id: str) -> dict:
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.get(
-                url=f"{self.base_url}/api/events/{event_id}/seats/",
+                url=self._url(f"api/events/{event_id}/seats/"),
                 headers=self.headers,
                 follow_redirects=True,
             )
@@ -104,7 +107,7 @@ class EventsProviderClient:
     ) -> str:
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
-                url=f"{self.base_url}/api/events/{event_id}/register/",
+                url=self._url(f"api/events/{event_id}/register/"),
                 headers=self.headers,
                 json={
                     "first_name": first_name,
@@ -121,7 +124,7 @@ class EventsProviderClient:
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.request(
                 method="DELETE",
-                url=f"{self.base_url}/api/events/{event_id}/unregister/",
+                url=self._url(f"api/events/{event_id}/unregister/"),
                 headers=self.headers,
                 json={"ticket_id": ticket_id},
                 follow_redirects=True,
