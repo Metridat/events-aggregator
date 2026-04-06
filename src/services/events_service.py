@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime, timedelta, timezone
+from urllib.parse import urlencode, urljoin
 
 from src.provider.client import EventsProviderClient, EventsProviderHTTPError
 from src.repositories.events import EventRepository
@@ -52,6 +53,12 @@ def _raise_from_provider(exc: EventsProviderHTTPError) -> None:
     ) from exc
 
 
+def _build_events_page_url(base_url: str, page: int, page_size: int) -> str:
+    path_url = urljoin(base_url, "api/events")
+    query = urlencode({"page": page, "page_size": page_size})
+    return f"{path_url}?{query}"
+
+
 class EventsApplicationService:
     def __init__(self, provider: EventsProviderClient) -> None:
         self._provider = provider
@@ -70,14 +77,12 @@ class EventsApplicationService:
         )
 
         next_url = (
-            f"{base_url}api/events?page={page + 1}&page_size={page_size}"
+            _build_events_page_url(base_url, page + 1, page_size)
             if page * page_size < total
             else None
         )
         prev_url = (
-            f"{base_url}api/events?page={page - 1}&page_size={page_size}"
-            if page > 1
-            else None
+            _build_events_page_url(base_url, page - 1, page_size) if page > 1 else None
         )
 
         results = []
@@ -167,6 +172,7 @@ class EventsApplicationService:
                 "seat": payload.seat,
             }
         )
+        await repo.commit()
         self._seats_cache.pop(str(payload.event_id), None)
         return TicketCreateResponseSchema(ticket_id=uuid.UUID(ticket_id))
 
@@ -189,5 +195,6 @@ class EventsApplicationService:
 
         if success:
             await repo.delete_ticket_by_id(ticket_id=ticket_id)
+            await repo.commit()
             self._seats_cache.pop(str(ticket.event_id), None)
         return TicketDeleteResponseSchema(success=success)

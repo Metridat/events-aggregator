@@ -62,11 +62,9 @@ async def create_ticket(
     ctx: EventsApiContext = Depends(get_events_api_context),
 ):
     try:
-        result = await ctx.service.create_ticket(ctx.repo, payload)
+        return await ctx.service.create_ticket(ctx.repo, payload)
     except EventsServiceError as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail) from e
-    await ctx.session.commit()
-    return result
 
 
 @router.delete(
@@ -79,9 +77,6 @@ async def delete_ticket(
     ctx: EventsApiContext = Depends(get_events_api_context),
 ):
     try:
-        result = await ctx.service.delete_ticket(ctx.repo, ticket_id)
+        return await ctx.service.delete_ticket(ctx.repo, ticket_id)
     except EventsServiceError as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail) from e
-    if result.success:
-        await ctx.session.commit()
-    return result

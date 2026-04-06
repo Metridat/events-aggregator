@@ -66,6 +66,9 @@ class EventRepository:
         )
         await self.session.execute(stmt)
 
+    async def commit(self) -> None:
+        await self.session.commit()
+
     async def get_ticket_by_id(self, ticket_id: str) -> Ticket | None:
         result = await self.session.execute(
             select(Ticket).where(Ticket.ticket_id == ticket_id)

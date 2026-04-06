@@ -25,7 +25,6 @@ def get_events_application_service() -> EventsApplicationService:
 class EventsApiContext:
     service: EventsApplicationService
     repo: EventRepository
-    session: AsyncSession
 
 
 def get_events_api_context(
@@ -35,5 +34,4 @@ def get_events_api_context(
     return EventsApiContext(
         service=service,
         repo=EventRepository(session=session),
-        session=session,
     )
